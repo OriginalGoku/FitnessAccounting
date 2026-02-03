@@ -49,6 +49,32 @@ fitbooks-site/
 └── package.json
 ```
 
+
+## 🔧 Technical Notes
+
+- **Framework**: Next.js 14 with App Router
+- **Styling**: Tailwind CSS with custom design system
+- **Typography**: Fraunces (display) + DM Sans (body)
+- **Icons**: Lucide React
+- **Export**: Static export enabled for easy hosting
+
+## 📱 Mobile Responsive
+
+The site is fully responsive:
+- Mobile-first approach
+- Collapsible navigation menu
+- Optimized touch targets
+- Readable typography at all sizes
+
+## ♿ Accessibility
+
+- Semantic HTML structure
+- Focus visible states
+- ARIA labels where needed
+- Good color contrast ratios
+- Keyboard navigable
+
+
 ## 🎨 Customization
 
 ### 1. Update Contact Information
@@ -92,73 +118,6 @@ npm i -g vercel
 vercel
 ```
 
-### Option 2: Via GitHub
-
-1. Push this code to a GitHub repository
-2. Go to [vercel.com](https://vercel.com)
-3. Click "New Project"
-4. Import your GitHub repository
-5. Vercel will auto-detect Next.js and deploy
-
-### Option 3: Manual Upload
-
-1. Build the project: `npm run build`
-2. The static export will be in the `out/` folder
-3. Upload to any static hosting (Vercel, Netlify, etc.)
-
-## 📧 Adding a Contact Form Backend
-
-The contact form currently doesn't submit anywhere. Options:
-
-### Formspree (Easiest)
-1. Sign up at [formspree.io](https://formspree.io)
-2. Create a form and get your endpoint
-3. Add `action="https://formspree.io/f/YOUR_ID"` to the form in `CTA.tsx`
-
-### Vercel Functions
-Create `/api/contact.ts` to handle submissions via email services like SendGrid or Resend.
-
-### Other Options
-- Netlify Forms
-- EmailJS
-- Custom backend
-
-## 🔧 Technical Notes
-
-- **Framework**: Next.js 14 with App Router
-- **Styling**: Tailwind CSS with custom design system
-- **Typography**: Fraunces (display) + DM Sans (body)
-- **Icons**: Lucide React
-- **Export**: Static export enabled for easy hosting
-
-## 📱 Mobile Responsive
-
-The site is fully responsive:
-- Mobile-first approach
-- Collapsible navigation menu
-- Optimized touch targets
-- Readable typography at all sizes
-
-## ♿ Accessibility
-
-- Semantic HTML structure
-- Focus visible states
-- ARIA labels where needed
-- Good color contrast ratios
-- Keyboard navigable
-
-## 📈 SEO
-
-Metadata configured in `app/layout.tsx`:
-- Title and description
-- Open Graph tags
-- Keywords
-
-Add these for production:
-- `robots.txt`
-- `sitemap.xml`
-- Google Analytics
-- Structured data (JSON-LD)
 
 ---
 
