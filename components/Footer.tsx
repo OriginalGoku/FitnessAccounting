@@ -132,7 +132,11 @@ export default function Footer() {
             </div>
           </div>
         </div>
-
+        <p className="text-sm">
+          Disclaimer: The information on this website is for general
+          informational and bookkeeping education purposes only and is not tax
+          advice.
+        </p>
         {/* Bottom bar */}
         <div className="py-6 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm">
