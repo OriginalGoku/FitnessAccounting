@@ -1,4 +1,27 @@
 import { Dumbbell, Instagram, Linkedin, Mail } from "lucide-react";
+import { CONTACT, SOCIALS } from "@/config/site";
+
+function ObfuscatedContact() {
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="hover:text-white transition-colors">
+        <img
+          src="/contact/email.svg"
+          alt="Email address"
+          className="h-5 w-auto"
+        />
+      </div>
+
+      <div className="hover:text-white transition-colors">
+        <img
+          src="/contact/phone.svg"
+          alt="Phone number"
+          className="h-5 w-auto"
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -41,26 +64,26 @@ export default function Footer() {
             {/* Social links */}
             <div className="flex gap-3">
               <a
-                href="#"
+                href={SOCIALS.instagram}
                 className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href={SOCIALS.linkedin}
                 className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a
-                href="mailto:hello@fitbooks.ca"
+              {/*<a
+                href={`mailto:${CONTACT.email}`}
                 className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors"
                 aria-label="Email"
               >
                 <Mail className="w-5 h-5" />
-              </a>
+              </a>*/}
             </div>
           </div>
 
@@ -101,25 +124,14 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h4 className="text-white font-semibold mb-4">Get In Touch</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a
-                  href="mailto:info@fitnessaccounting.com"
-                  className="hover:text-white transition-colors"
-                >
-                  info@fitnessaccounting.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="tel:+1416XXX1234"
-                  className="hover:text-white transition-colors"
-                >
-                  (416) XXX-1234
-                </a>
-              </li>
-              <li>Richmond Hill, Ontario</li>
-            </ul>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <ObfuscatedContact />
+                </li>
+
+                <li className="whitespace-pre-line">{CONTACT.address}</li>
+              </ul>
+  
 
             <div className="mt-6 p-4 bg-slate-900 rounded-xl">
               <p className="text-sm text-slate-300 mb-2">Free consultation</p>

@@ -1,10 +1,14 @@
-'use client'
+"use client";
 
-import { Mail, Phone, MapPin, ArrowRight, Calendar } from 'lucide-react'
+import { Mail, Phone, MapPin, ArrowRight, Calendar } from "lucide-react";
+import { CONTACT } from "@/config/site";
 
 export default function CTA() {
   return (
-    <section id="contact" className="section-padding bg-slate-900 relative overflow-hidden noise-overlay">
+    <section
+      id="contact"
+      className="section-padding bg-slate-900 relative overflow-hidden noise-overlay"
+    >
       {/* Background decorations */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent-500/10 rounded-full blur-3xl" />
@@ -14,21 +18,21 @@ export default function CTA() {
           {/* Left: CTA content */}
           <div>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-              Ready to get your{' '}
+              Ready to get your{" "}
               <span className="text-primary-400">finances in shape?</span>
             </h2>
             <p className="text-xl text-slate-300 mb-8">
-              Book a free 30-minute consultation. We&apos;ll review your current situation, 
-              discuss your needs, and figure out if we&apos;re a good fit — no pressure, no 
-              obligation.
+              Book a free 30-minute consultation. We&apos;ll review your current
+              situation, discuss your needs, and figure out if we&apos;re a good
+              fit — no pressure, no obligation.
             </p>
 
             {/* Benefits */}
             <div className="space-y-4 mb-8">
               {[
-                'Free financial health check',
-                'No commitment required',
-                'Get answers to all your questions',
+                "Free financial health check",
+                "No commitment required",
+                "Get answers to all your questions",
               ].map((benefit, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <div className="w-6 h-6 bg-primary-500/20 rounded-full flex items-center justify-center">
@@ -41,31 +45,33 @@ export default function CTA() {
 
             {/* Contact info */}
             <div className="space-y-4">
-              <a
-                href="mailto:info@fitnessaccounting.com"
-                className="flex items-center gap-4 text-slate-300 hover:text-white transition-colors group"
-              >
-                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center group-hover:bg-primary-600 transition-colors">
+              <div className="flex items-center gap-4 text-slate-300">
+                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
                   <Mail className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Email</p>
-                  <p className="font-medium">info@fitnessaccounting.com</p>
+                  <img
+                    src="/contact/email.svg"
+                    alt="Email address"
+                    className="h-4 w-auto"
+                  />
                 </div>
-              </a>
+              </div>
 
-              <a
-                href="tel:+14XXXXXX"
-                className="flex items-center gap-4 text-slate-300 hover:text-white transition-colors group"
-              >
-                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center group-hover:bg-primary-600 transition-colors">
+              <div className="flex items-center gap-4 text-slate-300">
+                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Phone</p>
-                  <p className="font-medium">(416) XXX-1234</p>
+                  <img
+                    src="/contact/phone.svg"
+                    alt="Phone number"
+                    className="h-4 w-auto"
+                  />
                 </div>
-              </a>
+              </div>
 
               <div className="flex items-center gap-4 text-slate-300">
                 <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
@@ -73,7 +79,9 @@ export default function CTA() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Location</p>
-                  <p className="font-medium">Richmond Hill, Ontario</p>
+                  <p className="font-medium whitespace-pre-line">
+                    {CONTACT.address}
+                  </p>
                 </div>
               </div>
             </div>
@@ -92,7 +100,10 @@ export default function CTA() {
 
             <form className="space-y-5">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
                   Your Name
                 </label>
                 <input
@@ -105,7 +116,10 @@ export default function CTA() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
                   Email Address
                 </label>
                 <input
@@ -118,7 +132,10 @@ export default function CTA() {
               </div>
 
               <div>
-                <label htmlFor="business" className="block text-sm font-medium text-slate-700 mb-2">
+                <label
+                  htmlFor="business"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
                   Type of Business
                 </label>
                 <select
@@ -127,16 +144,23 @@ export default function CTA() {
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all bg-white"
                 >
                   <option value="">Select your business type</option>
-                  <option value="personal-trainer">Personal Trainer (1-on-1)</option>
+                  <option value="personal-trainer">
+                    Personal Trainer (1-on-1)
+                  </option>
                   <option value="online-coach">Online Coach / Hybrid</option>
-                  <option value="group-fitness">Group Fitness Instructor</option>
+                  <option value="group-fitness">
+                    Group Fitness Instructor
+                  </option>
                   <option value="studio-owner">Studio / Gym Owner</option>
                   <option value="other">Other</option>
                 </select>
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
                   Tell me about your situation (optional)
                 </label>
                 <textarea
@@ -164,5 +188,5 @@ export default function CTA() {
         </div>
       </div>
     </section>
-  )
+  );
 }

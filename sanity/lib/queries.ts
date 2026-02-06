@@ -14,6 +14,7 @@ export const POSTS_QUERY = /* groq */ `
 }
 `;
 
+
 export const POST_BY_SLUG_QUERY = /* groq */ `
 *[_type == "post" && slug.current == $slug][0]{
   _id,
@@ -27,7 +28,15 @@ export const POST_BY_SLUG_QUERY = /* groq */ `
   tldr,
   cta,
   coverImage,
-  body
+  body,
+  sources[]{
+    title,
+    url,
+    publisher,
+    publishedAt,
+    note
+  },
+  hasCitations
 }
 `;
 
