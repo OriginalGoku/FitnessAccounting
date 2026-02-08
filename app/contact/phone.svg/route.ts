@@ -29,7 +29,7 @@ function makeSvgPath(text: string) {
 export async function GET() {
   const phone = process.env.CONTACT_PHONE;
   if (!phone) {
-    return new Response("Missing CONTACT_PHONE", { status: 500 });
+    return new Response("Service unavailable", { status: 500 });
   }
 
   const { d, width, height } = makeSvgPath(phone);
@@ -47,7 +47,7 @@ export async function GET() {
   return new Response(svg, {
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "no-store",
     },
   });
 }

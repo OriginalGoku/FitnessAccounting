@@ -54,6 +54,25 @@ function extractExistingIdFromConflictBody(bodyText: string): string | null {
   return match?.[1] ?? null;
 }
 
+async function recoverFromConflict(
+  error: unknown,
+  email: string,
+): Promise<UpsertContactResult | null> {
+  if (!(error instanceof HubSpotError) || error.status !== 409) return null;
+
+  const idFromConflict = extractExistingIdFromConflictBody(error.bodyText);
+  if (idFromConflict) {
+    return { contactId: idFromConflict, existingContact: true };
+  }
+
+  const bySearch = await findContactIdByEmail(email);
+  if (bySearch) {
+    return { contactId: bySearch, existingContact: true };
+  }
+
+  return null;
+}
+
 export async function findContactIdByEmail(
   email: string,
 ): Promise<string | null> {
@@ -115,6 +134,10 @@ export async function createContact(props: {
     );
     return { contactId: out.id, existingContact: false };
   } catch (error) {
+    // HubSpot returns 409 if a contact with this email already exists.
+    const conflictResult = await recoverFromConflict(error, normalizedEmail);
+    if (conflictResult) return conflictResult;
+
     if (
       error instanceof HubSpotError &&
       normalizedBusinessType &&
@@ -124,33 +147,28 @@ export async function createContact(props: {
         `[hubspot/contacts] Contact property "${businessTypeProperty}" is missing. Set HUBSPOT_BUSINESS_TYPE_PROPERTY to your HubSpot internal property name.`,
       );
 
-      const fallbackOut = await hsFetch<{ id: string }>(
-        "crm",
-        "/crm/v3/objects/contacts",
-        {
-          method: "POST",
-          json: {
-            properties: {
-              email: normalizedEmail,
-              ...(props.firstname ? { firstname: props.firstname } : {}),
+      try {
+        const fallbackOut = await hsFetch<{ id: string }>(
+          "crm",
+          "/crm/v3/objects/contacts",
+          {
+            method: "POST",
+            json: {
+              properties: {
+                email: normalizedEmail,
+                ...(props.firstname ? { firstname: props.firstname } : {}),
+              },
             },
           },
-        },
-      );
-      return { contactId: fallbackOut.id, existingContact: false };
-    }
-
-    // HubSpot returns 409 if a contact with this email already exists.
-    // Recover by extracting the contact id from response text or by re-searching.
-    if (error instanceof HubSpotError && error.status === 409) {
-      const idFromConflict = extractExistingIdFromConflictBody(error.bodyText);
-      if (idFromConflict) {
-        return { contactId: idFromConflict, existingContact: true };
-      }
-
-      const bySearch = await findContactIdByEmail(normalizedEmail);
-      if (bySearch) {
-        return { contactId: bySearch, existingContact: true };
+        );
+        return { contactId: fallbackOut.id, existingContact: false };
+      } catch (fallbackError) {
+        const fallbackConflict = await recoverFromConflict(
+          fallbackError,
+          normalizedEmail,
+        );
+        if (fallbackConflict) return fallbackConflict;
+        throw fallbackError;
       }
     }
 

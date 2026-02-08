@@ -2,8 +2,9 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const HUBSPOT_ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN; 
-const PIPELINE_LABEL = process.env.HUBSPOT_DEALS_PIPELINE_LABEL || "FitBooks Sales";
+const HUBSPOT_ACCESS_TOKEN = process.env.HUBSPOT_PRIVATE_APP_TOKEN;
+const PIPELINE_LABEL =
+  process.env.HUBSPOT_DEALS_PIPELINE_LABEL || "FitBooks Sales";
 const OUTFILE =
   process.env.HUBSPOT_PIPELINE_MAP_FILE ||
   path.join(process.cwd(), "hubspot_deal_pipeline_map.json");
@@ -33,12 +34,14 @@ async function hsGet(url) {
 async function main() {
   if (!HUBSPOT_ACCESS_TOKEN || HUBSPOT_ACCESS_TOKEN.trim().length < 20) {
     throw new Error(
-      "Missing/invalid HUBSPOT_ACCESS_TOKEN. Pipelines API requires Bearer auth (private app access token or OAuth)."
+      "Missing/invalid HUBSPOT_ACCESS_TOKEN. Pipelines API requires Bearer auth (private app access token or OAuth).",
     );
   }
 
   // Deal pipelines
-  const pipelinesData = await hsGet("https://api.hubapi.com/crm/v3/pipelines/deals");
+  const pipelinesData = await hsGet(
+    "https://api.hubapi.com/crm/v3/pipelines/deals",
+  );
   const pipelines = pipelinesData.results || [];
   if (!pipelines.length) throw new Error("No deal pipelines found.");
 
@@ -51,7 +54,7 @@ async function main() {
 
   // Stages
   const stagesData = await hsGet(
-    `https://api.hubapi.com/crm/v3/pipelines/deals/${pipelineId}/stages`
+    `https://api.hubapi.com/crm/v3/pipelines/deals/${pipelineId}/stages`,
   );
   const stages = stagesData.results || [];
   const stageByLabel = Object.fromEntries(stages.map((s) => [s.label, s.id]));

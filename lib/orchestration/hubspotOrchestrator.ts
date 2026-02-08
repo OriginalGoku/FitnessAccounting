@@ -27,7 +27,14 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
     const hadExistingContactBeforeSubmission =
       !!existingContactIdBeforeSubmission;
 
-    // 1) (Optional) submit as a real HubSpot form submission  [oai_citation:9‡HubSpot Developers](https://developers.hubspot.com/docs/api-reference/legacy/forms-v3-legacy/post-submissions-v3-integration-secure-submit-portalId-formGuid?utm_source=chatgpt.com)
+    // 1) Upsert contact via CRM (first, so the form submission finds the existing contact)
+    const { contactId } = await upsertContact({
+      email: payload.email,
+      firstname: payload.name,
+      businessType: payload.businessType,
+    });
+
+    // 2) (Optional) submit as a real HubSpot form submission for analytics/workflows
     if (portalId && formGuid) {
       try {
         await submitHubSpotForm({
@@ -36,8 +43,6 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
           fields: [
             { name: "email", value: payload.email },
             { name: "firstname", value: payload.name },
-            // add more if these exist as HS form fields:
-            // { name: "message", value: payload.message ?? "" },
           ],
           context: {
             pageUri: payload.pageUri,
@@ -55,13 +60,6 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
         }
       }
     }
-
-    // 2) Upsert contact via CRM  [oai_citation:10‡HubSpot Developers](https://developers.hubspot.com/docs/api-reference/crm-contacts-v3/search/post-crm-v3-objects-contacts-search?utm_source=chatgpt.com)
-    const { contactId } = await upsertContact({
-      email: payload.email,
-      firstname: payload.name,
-      businessType: payload.businessType,
-    });
 
     // 3) Create deal in your pipeline/stage  [oai_citation:11‡HubSpot Developers](https://developers.hubspot.com/docs/api-reference/crm-deals-v3/guide?utm_source=chatgpt.com)
     const dealId = await createDeal({

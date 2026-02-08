@@ -124,14 +124,13 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h4 className="text-white font-semibold mb-4">Get In Touch</h4>
-              <ul className="space-y-3 text-sm">
-                <li>
-                  <ObfuscatedContact />
-                </li>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <ObfuscatedContact />
+              </li>
 
-                <li className="whitespace-pre-line">{CONTACT.address}</li>
-              </ul>
-  
+              <li className="whitespace-pre-line">{CONTACT.address}</li>
+            </ul>
 
             <div className="mt-6 p-4 bg-slate-900 rounded-xl">
               <p className="text-sm text-slate-300 mb-2">Free consultation</p>
@@ -155,7 +154,7 @@ export default function Footer() {
             © {currentYear} FitBooks. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy
             </a>
             <a href="#" className="hover:text-white transition-colors">

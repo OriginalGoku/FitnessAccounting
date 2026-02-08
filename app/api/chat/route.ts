@@ -19,6 +19,7 @@ const CHAT_RATE_LIMIT = {
 type ChatRequestBody = {
   message?: unknown;
   previousResponseId?: unknown;
+  captchaToken?: unknown;
 };
 
 type OpenAIResponseOutputChunk = {
@@ -51,6 +52,8 @@ type ChatErrorCode =
   | "invalid_request"
   | "message_required"
   | "message_too_long"
+  | "captcha_required"
+  | "captcha_failed"
   | "rate_limited"
   | "provider_unavailable"
   | "server_error";
@@ -143,6 +146,54 @@ export async function POST(request: NextRequest) {
     !/^resp_[A-Za-z0-9]+$/.test(previousResponseIdRaw)
   ) {
     return jsonError(400, "invalid_request", headers);
+  }
+
+  // Require Turnstile verification on the first message of a conversation.
+  if (!previousResponseIdRaw) {
+    const captchaToken =
+      typeof requestBody.captchaToken === "string"
+        ? requestBody.captchaToken.trim()
+        : "";
+
+    if (!captchaToken) {
+      return jsonError(400, "captcha_required", headers);
+    }
+
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+    if (!turnstileSecret) {
+      return jsonError(500, "server_misconfigured", headers);
+    }
+
+    const form = new URLSearchParams();
+    form.set("secret", turnstileSecret);
+    form.set("response", captchaToken);
+    const clientIp = getClientIp(request);
+    if (clientIp !== "unknown") {
+      form.set("remoteip", clientIp);
+    }
+
+    try {
+      const verifyRes = await fetch(
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: form.toString(),
+          signal: AbortSignal.timeout(10_000),
+        },
+      );
+
+      if (!verifyRes.ok) {
+        return jsonError(400, "captcha_failed", headers);
+      }
+
+      const verification = (await verifyRes.json()) as { success?: boolean };
+      if (!verification.success) {
+        return jsonError(400, "captcha_failed", headers);
+      }
+    } catch {
+      return jsonError(400, "captcha_failed", headers);
+    }
   }
 
   try {

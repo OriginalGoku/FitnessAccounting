@@ -8,6 +8,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +43,9 @@ const chatErrorMessageByCode: Record<string, string> = {
   message_too_long: "Message is too long. Please shorten it.",
   invalid_request: "Session reset. Please send your message again.",
   payload_too_large: "Message is too large. Please shorten it.",
+  captcha_required:
+    "Verification required. Please wait a moment and try again.",
+  captcha_failed: "Verification failed. Please try again.",
   rate_limited: "Too many messages sent. Please wait a moment and retry.",
   provider_unavailable:
     "Assistant is temporarily unavailable. Please try again.",
@@ -74,6 +78,8 @@ export default function ChatWidget() {
     null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string>("");
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const canSubmit = useMemo(
@@ -90,6 +96,8 @@ export default function ChatWidget() {
     setPreviousResponseId(null);
     setError(null);
     setInput("");
+    setCaptchaToken("");
+    turnstileRef.current?.reset();
   };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -104,6 +112,15 @@ export default function ChatWidget() {
     setMessages((current) => [...current, makeMessage("user", question)]);
     setIsLoading(true);
 
+    // Include captchaToken only on the first message (no previousResponseId).
+    const isFirstMessage = !previousResponseId;
+
+    if (isFirstMessage && !captchaToken) {
+      setError(chatErrorMessageByCode.captcha_required);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -113,6 +130,7 @@ export default function ChatWidget() {
         body: JSON.stringify({
           message: question,
           previousResponseId,
+          ...(isFirstMessage ? { captchaToken } : {}),
         }),
       });
 
@@ -122,6 +140,14 @@ export default function ChatWidget() {
       if (!response.ok || !data.ok || !answer) {
         if (data.code === "invalid_request") {
           setPreviousResponseId(null);
+        }
+
+        if (
+          data.code === "captcha_failed" ||
+          data.code === "captcha_required"
+        ) {
+          setCaptchaToken("");
+          turnstileRef.current?.reset();
         }
 
         throw new Error(
@@ -167,6 +193,14 @@ export default function ChatWidget() {
                 <CardDescription>
                   Ask about bookkeeping services and next steps.
                 </CardDescription>
+                <p className="mt-1 text-[10px] leading-tight text-slate-400">
+                  Chats are recorded to improve the service and are processed in
+                  accordance with our{" "}
+                  <a href="/privacy" className="underline hover:text-slate-600">
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
               </div>
               <div className="flex items-center gap-1">
                 <Button
@@ -233,7 +267,17 @@ export default function ChatWidget() {
             </ScrollArea>
           </CardContent>
 
-          <CardFooter className="border-t border-slate-100 bg-white">
+          <CardFooter className="flex-col gap-2 border-t border-slate-100 bg-white">
+            {!previousResponseId && !captchaToken ? (
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
+                options={{ size: "compact", action: "chat" }}
+                onSuccess={(token) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken("")}
+                onError={() => setCaptchaToken("")}
+              />
+            ) : null}
             <form
               onSubmit={onSubmit}
               className="flex w-full items-center gap-2"

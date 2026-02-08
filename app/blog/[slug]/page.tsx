@@ -6,7 +6,10 @@ import { PortableText } from "next-sanity";
 import Image from "next/image";
 import { urlFor } from "@/sanity/lib/image";
 
-const countryLabel: Record<string, string> = { CA: "Canada", US: "United States" };
+const countryLabel: Record<string, string> = {
+  CA: "Canada",
+  US: "United States",
+};
 
 export async function generateStaticParams() {
   const slugs: { slug: string }[] = await client.fetch(POST_SLUGS_QUERY);
@@ -35,6 +38,15 @@ type Post = {
   sources?: Source[];
   coverImage?: any;
 };
+
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 const portableTextComponents = {
   types: {
@@ -85,7 +97,7 @@ export default async function BlogPostPage({
           ))}
         </ul>
       </section>
-      
+
       {post.coverImage ? (
         <div className="mt-6 overflow-hidden rounded-xl border">
           <Image
@@ -98,20 +110,18 @@ export default async function BlogPostPage({
           />
         </div>
       ) : null}
-      
+
       <article className="prose prose-gray mt-8 max-w-none">
         <PortableText value={post.body} components={portableTextComponents} />
       </article>
-      
-      
+
       {post.cta ? (
         <div className="mt-8 rounded-xl border p-5">
           <div className="text-sm font-semibold">Next step</div>
           <div className="mt-1 text-sm">{post.cta}</div>
         </div>
       ) : null}
-      
-      
+
       {post.hasCitations && post.sources?.length ? (
         <section className="mt-10 rounded-xl border p-5">
           <h2 className="text-sm font-semibold">Sources</h2>
@@ -121,22 +131,22 @@ export default async function BlogPostPage({
                 <div className="font-medium">
                   {s.title ?? s.url ?? "Source"}
                 </div>
-      
+
                 <div className="text-gray-600">
                   {[s.publisher, s.publishedAt].filter(Boolean).join(" • ")}
                 </div>
-      
-                {s.url ? (
+
+                {s.url && isSafeUrl(s.url) ? (
                   <a
                     href={s.url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="text-primary-600 hover:underline break-all"
                   >
                     {s.url}
                   </a>
                 ) : null}
-      
+
                 {s.note ? (
                   <div className="mt-1 text-gray-600">{s.note}</div>
                 ) : null}
@@ -145,7 +155,6 @@ export default async function BlogPostPage({
           </ol>
         </section>
       ) : null}
-      
     </main>
   );
 }

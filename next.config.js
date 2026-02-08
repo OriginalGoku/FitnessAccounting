@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const isDev = process.env.NODE_ENV !== "production";
 
+// Static CSP fallback for routes not covered by the proxy (API routes, static files).
+// Page routes use nonce-based CSP set by proxy.ts instead.
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -9,7 +11,7 @@ const csp = [
   "img-src 'self' data: blob: https://cdn.sanity.io https://*.hubspot.com https://*.hubspotusercontent.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  `script-src 'self' 'unsafe-inline' ${
+  `script-src 'self' ${
     isDev ? "'unsafe-eval' " : ""
   }https://challenges.cloudflare.com https://*.hsforms.net`,
   "connect-src 'self' https://api.openai.com https://api.hubapi.com https://api.hsforms.com https://challenges.cloudflare.com https://*.sanity.io wss://*.sanity.io",

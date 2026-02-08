@@ -32,7 +32,7 @@ function makeSvgPath(text: string) {
 export async function GET() {
   const email = process.env.CONTACT_EMAIL;
   if (!email) {
-    return new Response("Missing CONTACT_EMAIL", { status: 500 });
+    return new Response("Service unavailable", { status: 500 });
   }
 
   const { d, width, height } = makeSvgPath(email);

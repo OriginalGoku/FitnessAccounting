@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { HubSpotDirectOrchestrator } from "@/lib/orchestration/hubspotOrchestrator";
 import { HubSpotError } from "@/lib/hubspot/client";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/security/rate-limit";
-import {
-  getClientIp,
-  parseJsonBodyWithLimit,
-} from "@/lib/security/request";
+import { getClientIp, parseJsonBodyWithLimit } from "@/lib/security/request";
 
 const LEAD_REQUEST_MAX_BYTES = 10_240;
 
@@ -185,7 +182,10 @@ async function verifyTurnstile(
 }
 
 export async function POST(req: NextRequest) {
-  const limitResult = checkRateLimit(`lead:${getClientIp(req)}`, LEAD_RATE_LIMIT);
+  const limitResult = checkRateLimit(
+    `lead:${getClientIp(req)}`,
+    LEAD_RATE_LIMIT,
+  );
   const headers = rateLimitHeaders(limitResult);
 
   if (!limitResult.allowed) {
@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
     return jsonLeadError(400, "captcha_required", headers);
   }
 
-  const turnstileSecret = process.env.NEXT_PUBLIC_TURNSTILE_SECRET_KEY;
+  const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
   if (!turnstileSecret) {
     return jsonLeadError(500, "server_misconfigured", headers);
   }
