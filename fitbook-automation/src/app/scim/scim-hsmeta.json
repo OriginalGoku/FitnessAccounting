@@ -1,0 +1,7 @@
+{
+  "uid": "fitbook_automation_scim",
+  "type": "scim",
+  "config": {
+    "roleSyncEnabled": false
+  }
+}

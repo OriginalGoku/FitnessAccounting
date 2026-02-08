@@ -2,6 +2,8 @@
 
 import { Mail, Phone, MapPin, ArrowRight, Calendar } from "lucide-react";
 import { CONTACT } from "@/config/site";
+// import HubSpotForm from "@/components/HubSpotForm";
+import CTAForm from "@/components/CTAForm";
 
 export default function CTA() {
   return (
@@ -97,8 +99,8 @@ export default function CTA() {
                 Book Your Free Call
               </h3>
             </div>
-
-            <form className="space-y-5">
+            <CTAForm />
+            {/*<form className="space-y-5">
               <div>
                 <label
                   htmlFor="name"
@@ -183,8 +185,16 @@ export default function CTA() {
               <p className="text-center text-sm text-slate-500">
                 I&apos;ll respond within 24 hours to schedule our call.
               </p>
-            </form>
+            </form>*/}
           </div>
+
+          {/*<div className="bg-white rounded-3xl p-8 md:p-10 shadow-2xl">
+            <HubSpotForm
+              region="na3"
+              portalId="342951756"
+              formId="20d2959c-3f78-4251-b5a3-b84ff7d997b3"
+            />
+          </div>*/}
         </div>
       </div>
     </section>

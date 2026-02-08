@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-02-07T01:38:21.615Z",
+  "pipeline": {
+    "id": "default",
+    "label": "Fitness Accounting"
+  },
+  "stages": [
+    {
+      "label": "New Lead",
+      "id": "appointmentscheduled"
+    },
+    {
+      "label": "Contacted",
+      "id": "qualifiedtobuy"
+    },
+    {
+      "label": "Replied",
+      "id": "presentationscheduled"
+    },
+    {
+      "label": "Booked Call",
+      "id": "decisionmakerboughtin"
+    },
+    {
+      "label": "No Show",
+      "id": "contractsent"
+    },
+    {
+      "label": "Won",
+      "id": "stage_0"
+    },
+    {
+      "label": "Lost",
+      "id": "stage_1"
+    }
+  ],
+  "stagesByLabel": {
+    "New Lead": "appointmentscheduled",
+    "Contacted": "qualifiedtobuy",
+    "Replied": "presentationscheduled",
+    "Booked Call": "decisionmakerboughtin",
+    "No Show": "contractsent",
+    "Won": "stage_0",
+    "Closed Won": "closedwon",
+    "Lost": "stage_1",
+    "Closed Lost": "closedlost"
+  },
+  "missingLabels": []
+}
