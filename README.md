@@ -126,7 +126,7 @@ Create `.env.local` with the following keys.
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL` (example: `gpt-5-nano`)
 - `HUBSPOT_PRIVATE_APP_TOKEN`
-- `TURNSTILE_SECRET_KEY`
+- `NEXT_PUBLIC_TURNSTILE_SECRET_KEY`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
 - `CONTACT_EMAIL`
 - `CONTACT_PHONE`
@@ -135,6 +135,7 @@ Create `.env.local` with the following keys.
 
 - `HUBSPOT_PORTAL_ID`
 - `HUBSPOT_FORM_GUID`
+- `HUBSPOT_BUSINESS_TYPE_PROPERTY` (default internal name: `business_type`)
 
 ### Optional hardening / behavior controls
 

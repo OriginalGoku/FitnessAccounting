@@ -10,8 +10,43 @@ export type UpsertContactResult = {
   existingContact: boolean;
 };
 
+const ALLOWED_BUSINESS_TYPES = new Set([
+  "personal-trainer",
+  "online-coach",
+  "group-fitness",
+  "studio-owner",
+  "other",
+]);
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function normalizeBusinessType(value?: string): string | undefined {
+  const candidate = value?.trim();
+  if (!candidate) return undefined;
+
+  return ALLOWED_BUSINESS_TYPES.has(candidate) ? candidate : undefined;
+}
+
+function getBusinessTypePropertyName(): string {
+  const configured = process.env.HUBSPOT_BUSINESS_TYPE_PROPERTY?.trim();
+  return configured || "business_type";
+}
+
+function isMissingPropertyError(
+  error: HubSpotError,
+  propertyName: string,
+): boolean {
+  if (error.status !== 400) return false;
+
+  const body = error.bodyText.toLowerCase();
+  const property = propertyName.toLowerCase();
+  return (
+    body.includes(property) &&
+    body.includes("property") &&
+    (body.includes("does not exist") || body.includes("not a valid property"))
+  );
 }
 
 function extractExistingIdFromConflictBody(bodyText: string): string | null {
@@ -53,6 +88,18 @@ export async function createContact(props: {
   businessType?: string;
 }): Promise<UpsertContactResult> {
   const normalizedEmail = normalizeEmail(props.email);
+  const normalizedBusinessType = normalizeBusinessType(props.businessType);
+  const businessTypeProperty = getBusinessTypePropertyName();
+
+  const properties: Record<string, string> = {
+    email: normalizedEmail,
+  };
+  if (props.firstname) {
+    properties.firstname = props.firstname;
+  }
+  if (normalizedBusinessType) {
+    properties[businessTypeProperty] = normalizedBusinessType;
+  }
 
   // POST /crm/v3/objects/contacts  [oai_citation:5‡HubSpot Developers](https://developers.hubspot.com/docs/api-reference/crm-contacts-v3/guide?utm_source=chatgpt.com)
   try {
@@ -62,17 +109,37 @@ export async function createContact(props: {
       {
         method: "POST",
         json: {
-          properties: {
-            email: normalizedEmail,
-            firstname: props.firstname,
-            // Consider mapping these to real HS properties you create (e.g. "business_type")
-            // message: props.message,
-          },
+          properties,
         },
       },
     );
     return { contactId: out.id, existingContact: false };
   } catch (error) {
+    if (
+      error instanceof HubSpotError &&
+      normalizedBusinessType &&
+      isMissingPropertyError(error, businessTypeProperty)
+    ) {
+      console.error(
+        `[hubspot/contacts] Contact property "${businessTypeProperty}" is missing. Set HUBSPOT_BUSINESS_TYPE_PROPERTY to your HubSpot internal property name.`,
+      );
+
+      const fallbackOut = await hsFetch<{ id: string }>(
+        "crm",
+        "/crm/v3/objects/contacts",
+        {
+          method: "POST",
+          json: {
+            properties: {
+              email: normalizedEmail,
+              ...(props.firstname ? { firstname: props.firstname } : {}),
+            },
+          },
+        },
+      );
+      return { contactId: fallbackOut.id, existingContact: false };
+    }
+
     // HubSpot returns 409 if a contact with this email already exists.
     // Recover by extracting the contact id from response text or by re-searching.
     if (error instanceof HubSpotError && error.status === 409) {
@@ -93,27 +160,66 @@ export async function createContact(props: {
 
 export async function updateContact(
   contactId: string,
-  props: { firstname?: string },
+  props: { firstname?: string; businessType?: string },
 ): Promise<void> {
-  await hsFetch("crm", `/crm/v3/objects/contacts/${contactId}`, {
-    method: "PATCH",
-    json: { properties: props },
-  });
+  const businessTypeProperty = getBusinessTypePropertyName();
+  const normalizedBusinessType = normalizeBusinessType(props.businessType);
+  const properties: Record<string, string> = {};
+
+  if (props.firstname) {
+    properties.firstname = props.firstname;
+  }
+
+  if (normalizedBusinessType) {
+    properties[businessTypeProperty] = normalizedBusinessType;
+  }
+
+  if (Object.keys(properties).length === 0) {
+    return;
+  }
+
+  try {
+    await hsFetch("crm", `/crm/v3/objects/contacts/${contactId}`, {
+      method: "PATCH",
+      json: { properties },
+    });
+  } catch (error) {
+    if (
+      error instanceof HubSpotError &&
+      normalizedBusinessType &&
+      isMissingPropertyError(error, businessTypeProperty)
+    ) {
+      console.error(
+        `[hubspot/contacts] Contact property "${businessTypeProperty}" is missing. Set HUBSPOT_BUSINESS_TYPE_PROPERTY to your HubSpot internal property name.`,
+      );
+
+      if (props.firstname) {
+        await hsFetch("crm", `/crm/v3/objects/contacts/${contactId}`, {
+          method: "PATCH",
+          json: { properties: { firstname: props.firstname } },
+        });
+      }
+      return;
+    }
+
+    throw error;
+  }
 }
 
 export async function upsertContact(input: {
   email: string;
   firstname?: string;
+  businessType?: string;
 }): Promise<UpsertContactResult> {
   const email = normalizeEmail(input.email);
   const firstname = input.firstname?.trim();
+  const businessType = normalizeBusinessType(input.businessType);
 
   const existingId = await findContactIdByEmail(email);
 
   if (!existingId) {
-    return createContact({ email, firstname });
+    return createContact({ email, firstname, businessType });
   }
-  // optional: update name if provided
-  if (firstname) await updateContact(existingId, { firstname });
+  await updateContact(existingId, { firstname, businessType });
   return { contactId: existingId, existingContact: true };
 }

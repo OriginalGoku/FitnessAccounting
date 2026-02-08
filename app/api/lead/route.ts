@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
     return jsonLeadError(400, "captcha_required", headers);
   }
 
-  const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+  const turnstileSecret = process.env.NEXT_PUBLIC_TURNSTILE_SECRET_KEY;
   if (!turnstileSecret) {
     return jsonLeadError(500, "server_misconfigured", headers);
   }
