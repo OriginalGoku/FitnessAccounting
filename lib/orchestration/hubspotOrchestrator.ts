@@ -4,6 +4,7 @@ import { findContactIdByEmail, upsertContact } from "@/lib/hubspot/contacts";
 import { createDeal } from "@/lib/hubspot/deals";
 import { associateContactToDeal } from "@/lib/hubspot/associations";
 import { submitHubSpotForm } from "@/lib/hubspot/forms";
+import { createNote } from "@/lib/hubspot/notes";
 import { HubSpotError } from "@/lib/hubspot/client";
 import { HUBSPOT_PIPELINE, BOOKED_CALL_STAGE_ID } from "@/lib/pipelineMap";
 
@@ -21,13 +22,29 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
   async handleLead(payload: LeadPayload) {
     const portalId = process.env.HUBSPOT_PORTAL_ID;
     const formGuid = process.env.HUBSPOT_FORM_GUID;
-    const existingContactIdBeforeSubmission = await findContactIdByEmail(
-      payload.email,
-    );
-    const hadExistingContactBeforeSubmission =
-      !!existingContactIdBeforeSubmission;
+    const existingContactId = await findContactIdByEmail(payload.email);
 
-    // 1) Upsert contact via CRM (first, so the form submission finds the existing contact)
+    // Returning visitor — log a note (if they left a message) and return early
+    if (existingContactId) {
+      if (payload.message) {
+        await createNote({
+          message: payload.message,
+          businessType: payload.businessType,
+          pageUri: payload.pageUri,
+          pageName: payload.pageName,
+          contactId: existingContactId,
+        });
+      }
+
+      return {
+        ok: true as const,
+        existingContact: true,
+      };
+    }
+
+    // --- New contact flow ---
+
+    // 1) Create contact via CRM
     const { contactId } = await upsertContact({
       email: payload.email,
       firstname: payload.name,
@@ -61,20 +78,32 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
       }
     }
 
-    // 3) Create deal in your pipeline/stage  [oai_citation:11‡HubSpot Developers](https://developers.hubspot.com/docs/api-reference/crm-deals-v3/guide?utm_source=chatgpt.com)
+    // 3) Create deal in your pipeline/stage
     const dealId = await createDeal({
       dealname: `Booked Call – ${payload.name} (${payload.email})`,
       pipeline: HUBSPOT_PIPELINE.pipelineId,
       dealstage: BOOKED_CALL_STAGE_ID,
     });
 
-    // 4) Associate deal ↔ contact  [oai_citation:12‡HubSpot Developers](https://developers.hubspot.com/docs/api-reference/crm-associations-v4/guide?utm_source=chatgpt.com)
+    // 4) Associate deal ↔ contact
     await associateContactToDeal(contactId, dealId);
+
+    // 5) If the user left a message, store it as a NOTE associated to both Contact and Deal
+    if (payload.message) {
+      await createNote({
+        message: payload.message,
+        businessType: payload.businessType,
+        pageUri: payload.pageUri,
+        pageName: payload.pageName,
+        contactId,
+        dealId,
+      });
+    }
 
     return {
       ok: true as const,
       dealId,
-      existingContact: hadExistingContactBeforeSubmission,
+      existingContact: false,
     };
   }
 }
