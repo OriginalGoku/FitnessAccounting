@@ -3,6 +3,8 @@ import { HubSpotDirectOrchestrator } from "@/lib/orchestration/hubspotOrchestrat
 import { HubSpotError } from "@/lib/hubspot/client";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/security/rate-limit";
 import { getClientIp, parseJsonBodyWithLimit } from "@/lib/security/request";
+import { isValidNAPhoneNumber } from "@/lib/validation/phone";
+import { postOrchestrate } from "@/lib/cloudflare/orchestrate";
 
 const LEAD_REQUEST_MAX_BYTES = 10_240;
 
@@ -23,6 +25,8 @@ type LeadRequestBody = {
   pageUri?: unknown;
   pageName?: unknown;
   hutk?: unknown;
+  phone?: unknown;
+  wantsCallback?: unknown;
   captchaToken?: unknown;
 };
 
@@ -212,6 +216,13 @@ export async function POST(req: NextRequest) {
     return jsonLeadError(400, "invalid_request", headers);
   }
 
+  const phone = normalizeOptionalString(body.phone, 20);
+  if (phone && !isValidNAPhoneNumber(phone)) {
+    return jsonLeadError(400, "invalid_request", headers);
+  }
+
+  const wantsCallback = body.wantsCallback === true;
+
   const captchaToken = normalizeOptionalString(body.captchaToken, 2_000);
   if (!captchaToken) {
     return jsonLeadError(400, "captcha_required", headers);
@@ -239,9 +250,27 @@ export async function POST(req: NextRequest) {
       email,
       businessType: normalizeOptionalString(body.businessType, 80),
       message: normalizeOptionalString(body.message, 2_000),
+      phone,
+      wantsCallback,
       pageUri: normalizeOptionalString(body.pageUri, 500),
       pageName: normalizeOptionalString(body.pageName, 120),
       hutk: normalizeOptionalString(body.hutk, 200),
+    });
+
+    // Fire-and-forget to n8n via Cloudflare Worker
+    postOrchestrate({
+      name,
+      email,
+      businessType: normalizeOptionalString(body.businessType, 80),
+      message: normalizeOptionalString(body.message, 2_000),
+      phone,
+      wantsCallback,
+      pageUri: normalizeOptionalString(body.pageUri, 500),
+      pageName: normalizeOptionalString(body.pageName, 120),
+      source: "cta_form",
+      existingContact: result.existingContact ?? false,
+    }).catch((err) => {
+      console.error("[/api/lead] n8n orchestrate failed", err);
     });
 
     const code: LeadSuccessCode = result.existingContact

@@ -30,6 +30,8 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
         await createNote({
           message: payload.message,
           businessType: payload.businessType,
+          phone: payload.phone,
+          wantsCallback: payload.wantsCallback,
           pageUri: payload.pageUri,
           pageName: payload.pageName,
           contactId: existingContactId,
@@ -49,6 +51,7 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
       email: payload.email,
       firstname: payload.name,
       businessType: payload.businessType,
+      phone: payload.phone,
     });
 
     // 2) (Optional) submit as a real HubSpot form submission for analytics/workflows
@@ -93,6 +96,8 @@ export class HubSpotDirectOrchestrator implements LeadOrchestrator {
       await createNote({
         message: payload.message,
         businessType: payload.businessType,
+        phone: payload.phone,
+        wantsCallback: payload.wantsCallback,
         pageUri: payload.pageUri,
         pageName: payload.pageName,
         contactId,

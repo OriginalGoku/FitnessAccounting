@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { Turnstile } from "@marsidev/react-turnstile";
+import { isValidNAPhoneNumber } from "@/lib/validation/phone";
 
 type LeadApiSuccessCode = "lead_submitted" | "lead_already_exists";
 type LeadApiErrorCode =
@@ -50,11 +51,24 @@ export default function CTAForm() {
   const [error, setError] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [captchaToken, setCaptchaToken] = useState<string>("");
+  const [wantsCallback, setWantsCallback] = useState(false);
+  const [phoneError, setPhoneError] = useState<string>("");
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("sending");
     setError("");
     setSuccessMessage("");
+    setPhoneError("");
+
+    const formEl = e.currentTarget;
+    const form = new FormData(formEl);
+    const phone = String(form.get("phone") ?? "").trim();
+
+    if (phone && !isValidNAPhoneNumber(phone)) {
+      setStatus("error");
+      setPhoneError("Please enter a valid US/Canada phone number.");
+      return;
+    }
 
     if (!captchaToken) {
       setStatus("error");
@@ -62,13 +76,13 @@ export default function CTAForm() {
       return;
     }
 
-    const formEl = e.currentTarget;
-    const form = new FormData(formEl);
     const payload = {
       name: String(form.get("name") ?? ""),
       email: String(form.get("email") ?? ""),
-      businessType: String(form.get("businessType") ?? ""), // can be removed if not used
+      businessType: String(form.get("businessType") ?? ""),
       message: String(form.get("message") ?? ""),
+      phone: phone || undefined,
+      wantsCallback,
       pageUri: typeof window !== "undefined" ? window.location.href : undefined,
       pageName: "CTA Form",
       captchaToken,
@@ -119,7 +133,8 @@ export default function CTAForm() {
 
     setSuccessMessage(message);
     setStatus("sent");
-    setCaptchaToken(""); // reset token after success
+    setCaptchaToken("");
+    setWantsCallback(false);
     formEl.reset();
   }
 
@@ -195,6 +210,39 @@ export default function CTAForm() {
           placeholder="Current pain points, how long you've been in business, etc."
         />
       </div>
+
+      <div>
+        <label
+          htmlFor="phone"
+          className="block text-sm font-medium text-slate-700 mb-2"
+        >
+          Phone Number (optional)
+        </label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200"
+          placeholder="(555) 123-4567"
+        />
+        {phoneError ? (
+          <p className="text-sm text-red-700 mt-1">{phoneError}</p>
+        ) : null}
+      </div>
+
+      <div className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          id="wantsCallback"
+          checked={wantsCallback}
+          onChange={(e) => setWantsCallback(e.target.checked)}
+          className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+        />
+        <label htmlFor="wantsCallback" className="text-sm text-slate-700">
+          Call me now — get an immediate callback from Zeus, our AI assistant
+        </label>
+      </div>
+
       {/* CAPTCHA */}
 
       <div className="pt-2">

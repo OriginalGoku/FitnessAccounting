@@ -105,6 +105,7 @@ export async function createContact(props: {
   firstname?: string;
   message?: string;
   businessType?: string;
+  phone?: string;
 }): Promise<UpsertContactResult> {
   const normalizedEmail = normalizeEmail(props.email);
   const normalizedBusinessType = normalizeBusinessType(props.businessType);
@@ -118,6 +119,9 @@ export async function createContact(props: {
   }
   if (normalizedBusinessType) {
     properties[businessTypeProperty] = normalizedBusinessType;
+  }
+  if (props.phone) {
+    properties.phone = props.phone;
   }
 
   // POST /crm/v3/objects/contacts  [oai_citation:5‡HubSpot Developers](https://developers.hubspot.com/docs/api-reference/crm-contacts-v3/guide?utm_source=chatgpt.com)
@@ -178,7 +182,7 @@ export async function createContact(props: {
 
 export async function updateContact(
   contactId: string,
-  props: { firstname?: string; businessType?: string },
+  props: { firstname?: string; businessType?: string; phone?: string },
 ): Promise<void> {
   const businessTypeProperty = getBusinessTypePropertyName();
   const normalizedBusinessType = normalizeBusinessType(props.businessType);
@@ -190,6 +194,9 @@ export async function updateContact(
 
   if (normalizedBusinessType) {
     properties[businessTypeProperty] = normalizedBusinessType;
+  }
+  if (props.phone) {
+    properties.phone = props.phone;
   }
 
   if (Object.keys(properties).length === 0) {
@@ -228,16 +235,18 @@ export async function upsertContact(input: {
   email: string;
   firstname?: string;
   businessType?: string;
+  phone?: string;
 }): Promise<UpsertContactResult> {
   const email = normalizeEmail(input.email);
   const firstname = input.firstname?.trim();
   const businessType = normalizeBusinessType(input.businessType);
+  const phone = input.phone?.trim() || undefined;
 
   const existingId = await findContactIdByEmail(email);
 
   if (!existingId) {
-    return createContact({ email, firstname, businessType });
+    return createContact({ email, firstname, businessType, phone });
   }
-  await updateContact(existingId, { firstname, businessType });
+  await updateContact(existingId, { firstname, businessType, phone });
   return { contactId: existingId, existingContact: true };
 }

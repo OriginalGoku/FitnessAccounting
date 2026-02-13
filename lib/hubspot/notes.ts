@@ -6,6 +6,8 @@ import { hsFetch } from "./client";
 export async function createNote(input: {
   message: string;
   businessType?: string;
+  phone?: string;
+  wantsCallback?: boolean;
   pageUri?: string;
   pageName?: string;
   timestamp?: string;
@@ -14,6 +16,8 @@ export async function createNote(input: {
 }): Promise<string> {
   const lines = [input.message];
   if (input.businessType) lines.push(`Business type: ${input.businessType}`);
+  if (input.phone) lines.push(`Phone: ${input.phone}`);
+  if (input.wantsCallback) lines.push(`Wants immediate callback: Yes`);
   if (input.pageUri) lines.push(`Page: ${input.pageUri}`);
   if (input.pageName) lines.push(`Page name: ${input.pageName}`);
 

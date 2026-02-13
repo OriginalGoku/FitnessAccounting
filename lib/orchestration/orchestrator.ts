@@ -5,6 +5,8 @@ export type LeadPayload = {
   email: string;
   businessType?: string;
   message?: string;
+  phone?: string;
+  wantsCallback?: boolean;
   pageUri?: string;
   pageName?: string;
   hutk?: string;
